@@ -1,0 +1,19 @@
+{
+    "require": {
+        "php": "^7.4",
+        "symfony/console": "^5.0",
+        "symfony/translation": "^5.0",
+        "symfony/config": "^5.0",
+        "aws/aws-sdk-php": "^3.137"
+    },
+    "autoload": {
+        "psr-4": {
+            "TranslateIt\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "TranslateIt\\Tests\\": "tests/"
+        }
+    }
+}
