@@ -17,7 +17,7 @@ class CatalogueDiffTest extends TestCase
         $slave = new MessageCatalogue('es');
         $slave->add(['note' => 'NOTA', 'test' => 'PRUEBA']);
 
-        $expected = [(new Message('es', 'time', 'time', 'TIME', 'messages'))];
+        $expected = [(new Message('es', 'time', 'time', '', 'messages'))];
 
         $catalogueDiff = new CatalogueDiff($master);
         $result = $catalogueDiff->getDiff($slave);

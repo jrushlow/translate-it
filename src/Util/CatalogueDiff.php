@@ -40,7 +40,7 @@ class CatalogueDiff
 
             foreach ($messages as $id => $message) {
                 if (!$catalogue->defines($id, $domain)) {
-                    $this->uniqueMessages[] = new Message($catalogue->getLocale(), $id, $id, $this->catalogue->get($id), $domain);
+                    $this->uniqueMessages[] = new Message($catalogue->getLocale(), $id, $id, '', $domain);
                 }
             }
         }
