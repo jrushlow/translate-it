@@ -9,6 +9,7 @@
             <trans-unit id="tip">
                 <source>tip</source>
                 <target>TRUCO</target>
+            </trans-unit>
         </body>
     </file>
 </xliff>
