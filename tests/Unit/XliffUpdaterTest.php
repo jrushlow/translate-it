@@ -3,6 +3,7 @@
 namespace TranslateIt\Tests\Unit;
 
 use Aws\Result;
+use Symfony\Component\Translation\Dumper\XliffFileDumper;
 use Symfony\Component\Translation\Loader\XliffFileLoader;
 use TranslateIt\Aws\Translator;
 use TranslateIt\Model\Message;
@@ -29,7 +30,7 @@ class XliffUpdaterTest extends TestCase
             ->willReturn($awsResult)
         ;
 
-        $updater = new XliffUpdater(new XliffFileLoader(), $mockTranslator);
+        $updater = new XliffUpdater(new XliffFileLoader(), $mockTranslator, new XliffFileDumper());
 
         $fixturesPath = dirname(__DIR__).'/fixtures';
 

@@ -2,6 +2,7 @@
 
 namespace TranslateIt;
 
+use Symfony\Component\Translation\Dumper\XliffFileDumper;
 use Symfony\Component\Translation\Loader\XliffFileLoader;
 use Symfony\Component\Translation\MessageCatalogue;
 use TranslateIt\Aws\Translator;
@@ -14,6 +15,7 @@ class XliffUpdater
     private XliffFileLoader $loader;
     private Translator $aws;
     private CatalogueDiff $diff;
+    private XliffFileDumper $dumper;
     private MessageCatalogue $catalogue;
 
     /**
@@ -21,10 +23,11 @@ class XliffUpdater
      */
     private array $translations = [];
 
-    public function __construct(XliffFileLoader $loader, Translator $aws)
+    public function __construct(XliffFileLoader $loader, Translator $aws, XliffFileDumper $fileDumper)
     {
         $this->loader = $loader;
         $this->aws = $aws;
+        $this->dumper = $fileDumper;
     }
 
     public function updateTranslations(string $dir, string $masterDomain, string $masterLocale, array $locales)
@@ -112,6 +115,13 @@ class XliffUpdater
 
             $subjectCatalogues[$key]->addCatalogue($subjectToBeUpdated);
             $translated[] = $message;
+        }
+
+        $xlf = [];
+
+        foreach ($subjectCatalogues as $catalogue) {
+            $xlf[] = $this->dumper->formatCatalogue($catalogue, $masterDomain, ['xliff_version' => '1.2', 'default_locale' => $masterLocale]);
+            $this->dumper->dump($catalogue, ['path' => '/var/htdocs/translations/gen', 'xliff_version' => '1.2', 'default_locale' => $masterLocale]);
         }
 
         return $translated;
