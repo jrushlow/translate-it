@@ -5,7 +5,7 @@ namespace TranslateIt;
 use Symfony\Component\Translation\Loader\XliffFileLoader;
 use Symfony\Component\Translation\MessageCatalogue;
 use TranslateIt\Aws\Translator;
-use TranslateIt\Converter\CatalogueConverter;
+use TranslateIt\Model\Message;
 use TranslateIt\Model\Translation;
 use TranslateIt\Util\CatalogueDiff;
 
@@ -21,11 +21,10 @@ class XliffUpdater
      */
     private array $translations = [];
 
-    public function __construct(XliffFileLoader $loader, Translator $aws, CatalogueDiff $diff)
+    public function __construct(XliffFileLoader $loader, Translator $aws)
     {
         $this->loader = $loader;
         $this->aws = $aws;
-        $this->diff = $diff;
     }
 
     public function updateTranslations(string $dir, string $masterDomain, string $masterLocale, array $locales)
@@ -42,6 +41,8 @@ class XliffUpdater
 
         $masterCatalogue = $this->loader->load($masterFilePath, $masterLocale, $masterDomain);
 
+        $this->diff = new CatalogueDiff($masterCatalogue);
+
         $subjectCatalogues = [];
         $nullLocales = [];
 
@@ -50,6 +51,8 @@ class XliffUpdater
 
             if (!file_exists($xlf)) {
                 $nullLocales[] = $locale;
+
+                continue;
             }
 
             if (!is_writable($xlf)) {
@@ -62,10 +65,22 @@ class XliffUpdater
         $diffs = [];
 
         foreach ($subjectCatalogues as $subject) {
-            $diffs[] = $this->diff->getDiff($subject);
+            $diffs = array_merge($diffs, $this->diff->getDiff($subject));
         }
 
-        return $diffs;
+
+        $translated = [];
+
+        /** @var Message $message */
+        foreach ($diffs as $message) {
+            $response = $this->aws->translate($masterCatalogue->get($message->getId()), $masterCatalogue->getLocale(), $message->getLocal());
+
+            $message->setMessage($response->get('TranslatedText'));
+
+            $translated[] = $message;
+        }
+
+        return $translated;
     }
 
     private function getXlfPath(string $dir, string $domain, string $locale): string
