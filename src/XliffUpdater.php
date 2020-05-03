@@ -64,10 +64,15 @@ class XliffUpdater
 
         if (!empty($nullLocales)) {
             $originalMessages = $this->catalogue->all($masterDomain);
+
+            foreach ($originalMessages as $key => $value) {
+                $originalMessages[$key] = null;
+            }
+
             $masterMetadata = $this->catalogue->getMetadata();
 
             foreach ($nullLocales as $locale) {
-                $catalogue = new MessageCatalogue($locale, $originalMessages);
+                $catalogue = new MessageCatalogue($locale, [$masterDomain => $originalMessages]);
 
                 foreach ($masterMetadata as $key => $data) {
                     $catalogue->setMetadata($key, $data, $masterDomain);
@@ -92,6 +97,20 @@ class XliffUpdater
 
             $message->setMessage($response->get('TranslatedText'));
 
+            $array = array_filter($subjectCatalogues, function ($c) use ($message) {
+                return $message->getLocal() === $c->getLocale() && in_array(
+                        $message->getDomain(),
+                        ($c->getDomains()),
+                        true
+                    );
+            });
+
+            $key = array_key_first($array);
+            $subjectToBeUpdated = $array[$key];
+            $subjectToBeUpdated->set($message->getId(), $message->getMessage(), $message->getDomain());
+            $subjectToBeUpdated->setMetadata($message->getId(), ['source' => $message->getId(), 'id' => $message->getId()], $message->getDomain());
+
+            $subjectCatalogues[$key]->addCatalogue($subjectToBeUpdated);
             $translated[] = $message;
         }
 
