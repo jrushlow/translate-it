@@ -39,9 +39,9 @@ class XliffUpdater
             throw new \RuntimeException(sprintf('Cannot read %s', $masterFilePath));
         }
 
-        $masterCatalogue = $this->loader->load($masterFilePath, $masterLocale, $masterDomain);
+        $this->catalogue = $this->loader->load($masterFilePath, $masterLocale, $masterDomain);
 
-        $this->diff = new CatalogueDiff($masterCatalogue);
+        $this->diff = new CatalogueDiff($this->catalogue);
 
         $subjectCatalogues = [];
         $nullLocales = [];
@@ -62,6 +62,21 @@ class XliffUpdater
             $subjectCatalogues[] = $this->loader->load($xlf, $locale, $masterDomain);
         }
 
+        if (!empty($nullLocales)) {
+            $originalMessages = $this->catalogue->all($masterDomain);
+            $masterMetadata = $this->catalogue->getMetadata();
+
+            foreach ($nullLocales as $locale) {
+                $catalogue = new MessageCatalogue($locale, $originalMessages);
+
+                foreach ($masterMetadata as $key => $data) {
+                    $catalogue->setMetadata($key, $data, $masterDomain);
+                }
+
+                $subjectCatalogues[] = $catalogue;
+            }
+        }
+
         $diffs = [];
 
         foreach ($subjectCatalogues as $subject) {
@@ -73,7 +88,7 @@ class XliffUpdater
 
         /** @var Message $message */
         foreach ($diffs as $message) {
-            $response = $this->aws->translate($masterCatalogue->get($message->getId()), $masterCatalogue->getLocale(), $message->getLocal());
+            $response = $this->aws->translate($this->catalogue->get($message->getId()), $this->catalogue->getLocale(), $message->getLocal());
 
             $message->setMessage($response->get('TranslatedText'));
 

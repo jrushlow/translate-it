@@ -18,9 +18,14 @@ class XliffUpdaterTest extends TestCase
 
         $mockTranslator = $this->createMock(Translator::class);
         $mockTranslator
-            ->expects($this->once())
+            ->expects($this->exactly(4))
             ->method('translate')
-            ->with('Not available', 'en', 'es')
+            ->withConsecutive(
+                ['Not available', 'en', 'es'],
+                ['NOTE', 'en', 'fr'],
+                ['TIP', 'en', 'fr'],
+                ['Not available', 'en', 'fr'],
+            )
             ->willReturn($awsResult)
         ;
 
