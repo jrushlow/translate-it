@@ -9,7 +9,6 @@ class CatalogueDiff
 {
     private MessageCatalogue $catalogue;
     private array $domains;
-    private array $uniqueMessages = [];
 
     public function __construct(MessageCatalogue $catalogue)
     {
@@ -19,6 +18,8 @@ class CatalogueDiff
 
     public function getDiff(MessageCatalogue $catalogue): array
     {
+        $uniqueMessages = [];
+
         $uniqueMasterDomains = array_diff($this->domains, $catalogue->getDomains());
 
         if (!empty($uniqueMasterDomains)) {
@@ -40,11 +41,11 @@ class CatalogueDiff
 
             foreach ($messages as $id => $message) {
                 if (!$catalogue->defines($id, $domain)) {
-                    $this->uniqueMessages[] = new Message($catalogue->getLocale(), $id, $id, '', $domain);
+                    $uniqueMessages[] = new Message($catalogue->getLocale(), $id, $id, '', $domain);
                 }
             }
         }
 
-        return $this->uniqueMessages;
+        return $uniqueMessages;
     }
 }
